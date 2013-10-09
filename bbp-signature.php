@@ -17,31 +17,52 @@ function bbp_user_signature( $user_id = 0 ) {
 	echo bbp_get_user_signature( $user_id );
 }
 
-	function bbp_get_user_signature( $user_id = 0 ) {
-		$signature = get_user_meta( $user_id, '_bbp_signature', true );
-		return apply_filters( 'bbp_get_user_signature', $signature, $user_id );
-	}
+function bbp_get_user_signature( $user_id = 0 ) {
+	$signature = get_user_meta( $user_id, '_bbp_signature', true );
+	return apply_filters( 'bbp_get_user_signature', $signature, $user_id );
+}
 	
-add_action( 'bbp_user_edit_after_about', 'bbp_edit_user_signature'  );	
+add_action( 'bbp_user_edit_after_about', 'bbp_edit_user_signature'  );
+add_action( 'show_user_profile', 'profile_page_signature_edit');
+add_action( 'edit_user_profile', 'bbp_edit_user_signature');
 add_filter( 'bbp_get_user_signature',    'wptexturize',        3    );
 add_filter( 'bbp_get_user_signature',    'html_entity_decode', 7    );
+add_filter( 'bbp_get_user_signature', 	 'wp_filter_kses', 8 );
 add_filter( 'bbp_get_user_signature',    'convert_chars',      5    );
 add_filter( 'bbp_get_user_signature',    'make_clickable',     9    );
 add_filter( 'bbp_get_user_signature',    'capital_P_dangit',   10   );
 add_filter( 'bbp_get_user_signature',    'force_balance_tags', 25   );
 add_filter( 'bbp_get_user_signature',    'convert_smilies',    20   );
 add_filter( 'bbp_get_user_signature',    'wpautop',            30   );
-	
-function bbp_edit_user_signature() {
-	
-	// Get the displayed users signature
-	$signature = bbp_get_displayed_user_field( '_bbp_signature' ); ?>
 
-		<div>
-			<label for="_bbp_signature"><?php _e( 'Signature', 'bbpress' ); ?></label>
-			<textarea name="_bbp_signature" id="_bbp_signature" rows="5" cols="30" onkeypress="return imposeMaxLength(this, 499);"><?php echo $signature; ?></textarea>
-			<span class="description"><?php _e( 'This will be shown publicly below your topics and replies.', 'bbpress' ); ?></span>
-		</div>
+function profile_page_signature_edit(){
+	$signature = get_user_meta(get_current_user_id(),'_bbp_signature', true);
+	?>
+	<table class="form-table">
+		<tr>
+			<th><label for="address"><?php _e( 'Signature', 'bbpress' ); ?></label></th>
+			<td>
+				<textarea name="_bbp_signature" id="_bbp_signature" onkeypress="return (jQuery(this).val().trim().length < 499);" maxlength="500" class="regular-text" ><?php echo esc_textarea( $signature ); ?></textarea><br />
+				<span class="description"><?php _e( 'This will be shown publicly below your topics and replies.', 'bbpress' ); ?></span>
+			</td>
+		</tr>
+	</table>
+	<?
+}
+	
+function bbp_edit_user_signature($profileuser) {
+	// Get the displayed users signature
+	$signature = get_user_meta($profileuser->ID,'_bbp_signature', true);
+	?>
+	<table class="form-table">
+		<tr>
+			<th><label for="address"><?php _e( 'Signature', 'bbpress' ); ?></label></th>
+			<td>
+				<textarea name="_bbp_signature" id="_bbp_signature" onkeypress="return (jQuery(this).val().trim().length < 499);" maxlength="500" class="regular-text" ><?php echo esc_textarea( $signature ); ?></textarea><br />
+				<span class="description"><?php _e( 'This will be shown publicly below your topics and replies.', 'bbpress' ); ?></span>
+			</td>
+		</tr>
+	</table>
 <?php
 }	
 add_action( 'wp_print_styles', 'bbp_signature_css' );
@@ -147,7 +168,6 @@ add_action( 'edit_user_profile_update',        'bbp_edit_user_signature_handler'
 add_filter( 'bbp_edit_user_signature_handler', 'trim'                            );
 add_filter( 'bbp_edit_user_signature_handler', 'wp_filter_kses'                  );
 add_filter( 'bbp_edit_user_signature_handler', 'force_balance_tags'              );
-add_filter( 'bbp_edit_user_signature_handler', '_wp_specialchars'                );
 
 	
 ?>
